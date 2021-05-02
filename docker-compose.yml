@@ -1,0 +1,36 @@
+version: "3.3"
+volumes:
+  my-volume:
+    external: true
+networks:
+  mt-network:
+    driver: bridge
+services:
+  mydb:
+    image: mysql
+    container_name: samirdb
+    ports:
+      - 4000:3306
+    security_opt:
+      - seccomp:unconfined
+    networks:
+      - mt-network
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_DATABASE=samirdb
+    volumes:
+      - my-volume:/var/lib/mysql
+  backend:
+    build: .
+    container_name: proj_back_end
+    ports:
+      - 8010:8010
+    networks:
+      - mt-network
+    environment:
+      - SPRING.DATASOURCE.USERNAME=root
+      - SPRING.DATASOURCE.PASSWORD=
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mydb:3306/samirdb?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false
+      - MYSQL_DATABASE=samirdb
+    depends_on:
+      - mydb
